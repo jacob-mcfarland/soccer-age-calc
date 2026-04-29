@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MVYSA Age Group Calculator</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    body { padding: 0; }
+
+    .mvysa-calc {
+      max-width: 600px;
+      color: #2A3C42;
+      line-height: 1.5;
+      box-sizing: border-box;
+      padding: 1.5rem;
+    }
+    .mvysa-calc *, .mvysa-calc *::before, .mvysa-calc *::after { box-sizing: border-box; }
+
+    .mvysa-calc__header {
+      margin-bottom: 1.25rem;
+    }
+    .mvysa-calc__title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem 0;
+      color: #2A3C42;
+    }
+    .mvysa-calc__subtitle {
+      font-size: 0.95rem;
+      color: #5a6a70;
+      margin: 0;
+    }
+
+    .mvysa-calc__inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .mvysa-calc__field { display: flex; flex-direction: column; }
+    .mvysa-calc__label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #2A3C42;
+      margin-bottom: 6px;
+    }
+    .mvysa-calc__select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: #2A3C42;
+      font-family: inherit;
+      line-height: 1.4;
+      appearance: auto;
+    }
+    .mvysa-calc__select:focus {
+      outline: none;
+      border-color: #2A3C42;
+      box-shadow: 0 0 0 3px rgba(42, 60, 66, 0.15);
+    }
+
+    .mvysa-calc__result {
+      background: #2A3C42;
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 1.5rem 1.75rem;
+      margin-top: 1rem;
+    }
+    .mvysa-calc__result-label {
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 0.5rem 0;
+      font-weight: 600;
+    }
+    .mvysa-calc__age {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      line-height: 1;
+      color: #ffffff;
+    }
+    .mvysa-calc__range {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.85);
+      margin: 0;
+    }
+
+    .mvysa-calc__warning {
+      display: none;
+      margin-top: 1rem;
+      background: #fdecec;
+      border-left: 4px solid #c62828;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+    }
+    .mvysa-calc__warning--visible { display: block; }
+    .mvysa-calc__warning-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #8b1f1f;
+      margin: 0 0 0.25rem 0;
+    }
+    .mvysa-calc__warning-body {
+      font-size: 0.9rem;
+      color: #5a1414;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .mvysa-calc__footer {
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      color: #5a6a70;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 480px) {
+      .mvysa-calc__inputs { grid-template-columns: 1fr; }
+      .mvysa-calc__age { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mvysa-calc" data-season-end="2027" data-club="Northwest United">
+    <div class="mvysa-calc__header">
+      <h1 class="mvysa-calc__title">Age Group Calculator</h1>
+      <p class="mvysa-calc__subtitle mvysa-calc__season">2026-27 Season &middot; August 1 cutoff</p>
+    </div>
+
+    <div class="mvysa-calc__inputs">
+      <div class="mvysa-calc__field">
+        <label class="mvysa-calc__label" for="mvysa-month">Birth Month</label>
+        <select class="mvysa-calc__select mvysa-calc__month" id="mvysa-month">
+          <option value="1">January</option>
+          <option value="2">February</option>
+          <option value="3">March</option>
+          <option value="4">April</option>
+          <option value="5">May</option>
+          <option value="6">June</option>
+          <option value="7" selected>July</option>
+          <option value="8">August</option>
+          <option value="9">September</option>
+          <option value="10">October</option>
+          <option value="11">November</option>
+          <option value="12">December</option>
+        </select>
+      </div>
+      <div class="mvysa-calc__field">
+        <label class="mvysa-calc__label" for="mvysa-year">Birth Year</label>
+        <select class="mvysa-calc__select mvysa-calc__year" id="mvysa-year"></select>
+      </div>
+    </div>
+
+    <div class="mvysa-calc__result">
+      <p class="mvysa-calc__result-label">Your Age Group</p>
+      <p class="mvysa-calc__age">&mdash;</p>
+      <p class="mvysa-calc__range">Select a month and year above.</p>
+    </div>
+
+    <div class="mvysa-calc__warning">
+      <p class="mvysa-calc__warning-title">Heads up: MVYSA recreational ends at U14</p>
+      <p class="mvysa-calc__warning-body"></p>
+    </div>
+
+    <p class="mvysa-calc__footer">
+      Age groups follow Washington Youth Soccer's August 1 &ndash; July 31 birth year window.
+    </p>
+
+    <script>
+      (function() {
+        var nodes = document.querySelectorAll('.mvysa-calc:not([data-init])');
+        var root = nodes[nodes.length - 1];
+        if (!root) return;
+        root.setAttribute('data-init', '1');
+
+        var seasonEndYear = parseInt(root.getAttribute('data-season-end') || '2027', 10);
+        var clubName = root.getAttribute('data-club') || 'Northwest United';
+        var seasonStartYear = seasonEndYear - 1;
+        var seasonLabel = seasonStartYear + '-' + String(seasonEndYear).slice(-2);
+
+        var monthEl = root.querySelector('.mvysa-calc__month');
+        var yearEl = root.querySelector('.mvysa-calc__year');
+        var ageEl = root.querySelector('.mvysa-calc__age');
+        var rangeEl = root.querySelector('.mvysa-calc__range');
+        var warnEl = root.querySelector('.mvysa-calc__warning');
+        var warnBodyEl = root.querySelector('.mvysa-calc__warning-body');
+        var seasonEl = root.querySelector('.mvysa-calc__season');
+
+        seasonEl.textContent = seasonLabel + ' Season \u00b7 August 1 cutoff';
+        warnBodyEl.textContent = 'MVYSA recreational soccer runs through U14. Players age U15 and older can try out at ' + clubName + ', which fields competitive teams in the upper age groups.';
+
+        var yearOptions = [];
+        var maxYear = seasonStartYear + 1;
+        var minYear = seasonStartYear - 19;
+        for (var y = maxYear; y >= minYear; y--) {
+          yearOptions.push('<option value="' + y + '">' + y + '</option>');
+        }
+        yearEl.innerHTML = yearOptions.join('');
+        yearEl.value = String(seasonStartYear - 12);
+
+        function update() {
+          var month = parseInt(monthEl.value, 10);
+          var year = parseInt(yearEl.value, 10);
+          var seasonBirthYear = month >= 8 ? year : year - 1;
+          var ageNumber = seasonStartYear - seasonBirthYear;
+          var rangeStart = 'August 1, ' + seasonBirthYear;
+          var rangeEnd = 'July 31, ' + (seasonBirthYear + 1);
+          var showWarning = false;
+
+          if (ageNumber < 6) {
+            ageEl.textContent = 'Too young';
+            rangeEl.textContent = 'Below U6 for the ' + seasonLabel + ' season.';
+          } else if (ageNumber > 19) {
+            ageEl.textContent = 'Above U19';
+            rangeEl.textContent = 'Older than U19. This calculator covers U6 through U19.';
+          } else {
+            ageEl.textContent = 'U' + ageNumber;
+            rangeEl.textContent = 'Born between ' + rangeStart + ' and ' + rangeEnd + '.';
+            if (ageNumber >= 15) showWarning = true;
+          }
+
+          if (showWarning) warnEl.classList.add('mvysa-calc__warning--visible');
+          else warnEl.classList.remove('mvysa-calc__warning--visible');
+        }
+
+        monthEl.addEventListener('change', update);
+        yearEl.addEventListener('change', update);
+        update();
+      })();
+    </script>
+  </div>
+</body>
+</html>

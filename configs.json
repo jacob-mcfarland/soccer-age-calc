@@ -1,0 +1,36 @@
+{
+  "_comment": "Config for each org. Add a new entry, then point that org's iframe at ?org=THE_KEY. All fields except 'name' and 'primary' are optional and fall back to sensible defaults.",
+
+  "mvysa": {
+    "name": "MVYSA",
+    "primary": "#2A3C42",
+    "seasonEnd": 2027,
+    "recMaxAge": 14,
+    "minAge": 6,
+    "maxAge": 19,
+    "selectClub": "Northwest United",
+    "footerNote": "Age groups follow Washington Youth Soccer's August 1 \u2013 July 31 birth year window."
+  },
+
+  "skagit-fc": {
+    "name": "Skagit FC",
+    "primary": "#0a3d62",
+    "seasonEnd": 2027,
+    "recMaxAge": 14,
+    "minAge": 6,
+    "maxAge": 19,
+    "selectClub": null,
+    "footerNote": "Age groups follow Washington Youth Soccer's August 1 \u2013 July 31 birth year window."
+  },
+
+  "demo": {
+    "name": "Demo Club",
+    "primary": "#1a73e8",
+    "seasonEnd": 2027,
+    "recMaxAge": 14,
+    "minAge": 6,
+    "maxAge": 19,
+    "selectClub": "Local Select Club",
+    "footerNote": "August 1 cutoff per US Soccer."
+  }
+}

@@ -12,25 +12,29 @@
     "footerNote": "Age groups follow Washington Youth Soccer's August 1 \u2013 July 31 birth year window."
   },
 
-  "skagit-fc": {
-    "name": "Skagit FC",
-    "primary": "#0a3d62",
+  "burlington": {
+    "name": "Burlington Youth Soccer",
+    "primary": "#2d3f81",
     "seasonEnd": 2027,
     "recMaxAge": 14,
     "minAge": 6,
     "maxAge": 19,
-    "selectClub": null,
+    "selectClub": "Northwest United",
     "footerNote": "Age groups follow Washington Youth Soccer's August 1 \u2013 July 31 birth year window."
   },
 
-  "demo": {
-    "name": "Demo Club",
-    "primary": "#1a73e8",
+  "la-conner": {
+    "name": "La Conner Youth Soccer",
+    "primary": "#000000",
     "seasonEnd": 2027,
     "recMaxAge": 14,
     "minAge": 6,
     "maxAge": 19,
-    "selectClub": "Local Select Club",
-    "footerNote": "August 1 cutoff per US Soccer."
+    "selectClub": "Northwest United",
+    "recReferrals": {
+      "13": "Mount Vernon Youth Soccer",
+      "14": "Mount Vernon Youth Soccer"
+    },
+    "footerNote": "Age groups follow Washington Youth Soccer's August 1 \u2013 July 31 birth year window."
   }
 }

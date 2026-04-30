@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soccer Age Group Calculator</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .calc {
+      max-width: 600px;
+      color: #2A3C42;
+      line-height: 1.5;
+      box-sizing: border-box;
+      padding: 1.5rem;
+      /* Brand color is set via inline style on the root element by JS. */
+    }
+    .calc *, .calc *::before, .calc *::after { box-sizing: border-box; }
+
+    .calc__header { margin-bottom: 1.25rem; }
+    .calc__title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.25rem 0;
+      color: var(--brand);
+    }
+    .calc__subtitle {
+      font-size: 0.95rem;
+      color: #5a6a70;
+      margin: 0;
+    }
+
+    .calc__inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .calc__field { display: flex; flex-direction: column; }
+    .calc__label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--brand);
+      margin-bottom: 6px;
+    }
+    .calc__select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      color: #2A3C42;
+      font-family: inherit;
+      line-height: 1.4;
+      appearance: auto;
+    }
+    .calc__select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    .calc__result {
+      background: var(--brand);
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 1.5rem 1.75rem;
+      margin-top: 1rem;
+    }
+    .calc__result-label {
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 0.5rem 0;
+      font-weight: 600;
+    }
+    .calc__age {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      line-height: 1;
+      color: #ffffff;
+    }
+    .calc__range {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.85);
+      margin: 0;
+    }
+
+    .calc__warning {
+      display: none;
+      margin-top: 1rem;
+      background: #fdecec;
+      border-left: 4px solid #c62828;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+    }
+    .calc__warning--visible { display: block; }
+    .calc__warning-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #8b1f1f;
+      margin: 0 0 0.25rem 0;
+    }
+    .calc__warning-body {
+      font-size: 0.9rem;
+      color: #5a1414;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .calc__footer {
+      margin-top: 1rem;
+      font-size: 0.8125rem;
+      color: #5a6a70;
+      line-height: 1.5;
+    }
+
+    .calc__error {
+      padding: 1.25rem;
+      border: 1px solid #c62828;
+      border-radius: 6px;
+      background: #fdecec;
+      color: #8b1f1f;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 480px) {
+      .calc__inputs { grid-template-columns: 1fr; }
+      .calc__age { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="calc">
+    <p class="calc__subtitle">Loading\u2026</p>
+  </div>
+
+  <script>
+  (function() {
+    var root = document.getElementById('root');
+
+    function showError(message) {
+      root.innerHTML = '<div class="calc__error">' + message + '</div>';
+    }
+
+    function getOrgKey() {
+      var params = new URLSearchParams(window.location.search);
+      return (params.get('org') || '').trim().toLowerCase();
+    }
+
+    function hexToRgba(hex, alpha) {
+      var h = hex.replace('#', '');
+      if (h.length === 3) h = h.split('').map(function(c) { return c + c; }).join('');
+      var r = parseInt(h.substring(0, 2), 16);
+      var g = parseInt(h.substring(2, 4), 16);
+      var b = parseInt(h.substring(4, 6), 16);
+      return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+    }
+
+    function render(config) {
+      var seasonEndYear = config.seasonEnd;
+      var seasonStartYear = seasonEndYear - 1;
+      var seasonLabel = seasonStartYear + '-' + String(seasonEndYear).slice(-2);
+      var minAge = config.minAge != null ? config.minAge : 6;
+      var maxAge = config.maxAge != null ? config.maxAge : 19;
+      var recMaxAge = config.recMaxAge != null ? config.recMaxAge : null;
+      var club = config.selectClub || null;
+      var footerNote = config.footerNote || '';
+      var brand = config.primary;
+
+      // Apply brand color as CSS variables
+      root.style.setProperty('--brand', brand);
+      root.style.setProperty('--brand-glow', hexToRgba(brand, 0.15));
+
+      // Build the warning sentence only if both recMaxAge and selectClub are set.
+      var warningEnabled = recMaxAge != null && club;
+      var warningBody = '';
+      if (warningEnabled) {
+        warningBody = config.name + ' recreational soccer runs through U' + recMaxAge +
+          '. Players age U' + (recMaxAge + 1) + ' and older can try out at ' + club +
+          ', which fields competitive teams in the upper age groups.';
+      }
+
+      var html = '' +
+        '<div class="calc__header">' +
+          '<h1 class="calc__title">Age Group Calculator</h1>' +
+          '<p class="calc__subtitle">' + seasonLabel + ' Season \u00b7 August 1 cutoff</p>' +
+        '</div>' +
+        '<div class="calc__inputs">' +
+          '<div class="calc__field">' +
+            '<label class="calc__label" for="month">Birth Month</label>' +
+            '<select class="calc__select" id="month">' +
+              '<option value="1">January</option>' +
+              '<option value="2">February</option>' +
+              '<option value="3">March</option>' +
+              '<option value="4">April</option>' +
+              '<option value="5">May</option>' +
+              '<option value="6">June</option>' +
+              '<option value="7" selected>July</option>' +
+              '<option value="8">August</option>' +
+              '<option value="9">September</option>' +
+              '<option value="10">October</option>' +
+              '<option value="11">November</option>' +
+              '<option value="12">December</option>' +
+            '</select>' +
+          '</div>' +
+          '<div class="calc__field">' +
+            '<label class="calc__label" for="year">Birth Year</label>' +
+            '<select class="calc__select" id="year"></select>' +
+          '</div>' +
+        '</div>' +
+        '<div class="calc__result">' +
+          '<p class="calc__result-label">Your Age Group</p>' +
+          '<p class="calc__age" id="age">\u2014</p>' +
+          '<p class="calc__range" id="range">Select a month and year above.</p>' +
+        '</div>' +
+        (warningEnabled
+          ? '<div class="calc__warning" id="warning">' +
+              '<p class="calc__warning-title">Heads up: ' + config.name + ' recreational ends at U' + recMaxAge + '</p>' +
+              '<p class="calc__warning-body">' + warningBody + '</p>' +
+            '</div>'
+          : '') +
+        (footerNote ? '<p class="calc__footer">' + footerNote + '</p>' : '');
+
+      root.innerHTML = html;
+
+      var monthEl = document.getElementById('month');
+      var yearEl = document.getElementById('year');
+      var ageEl = document.getElementById('age');
+      var rangeEl = document.getElementById('range');
+      var warnEl = warningEnabled ? document.getElementById('warning') : null;
+
+      // Build year options based on the configured age range
+      var yearOptions = [];
+      var yearMax = seasonStartYear + 1; // youngest possible
+      var yearMin = seasonStartYear - maxAge;
+      for (var y = yearMax; y >= yearMin; y--) {
+        yearOptions.push('<option value="' + y + '">' + y + '</option>');
+      }
+      yearEl.innerHTML = yearOptions.join('');
+      // Default to a sensible middle-of-range pick
+      var defaultAge = Math.min(12, maxAge);
+      yearEl.value = String(seasonStartYear - defaultAge);
+
+      function update() {
+        var month = parseInt(monthEl.value, 10);
+        var year = parseInt(yearEl.value, 10);
+        var seasonBirthYear = month >= 8 ? year : year - 1;
+        var ageNumber = seasonStartYear - seasonBirthYear;
+        var rangeStart = 'August 1, ' + seasonBirthYear;
+        var rangeEnd = 'July 31, ' + (seasonBirthYear + 1);
+        var showWarning = false;
+
+        if (ageNumber < minAge) {
+          ageEl.textContent = 'Too young';
+          rangeEl.textContent = 'Below U' + minAge + ' for the ' + seasonLabel + ' season.';
+        } else if (ageNumber > maxAge) {
+          ageEl.textContent = 'Above U' + maxAge;
+          rangeEl.textContent = 'Older than U' + maxAge + '. This calculator covers U' + minAge + ' through U' + maxAge + '.';
+        } else {
+          ageEl.textContent = 'U' + ageNumber;
+          rangeEl.textContent = 'Born between ' + rangeStart + ' and ' + rangeEnd + '.';
+          if (warningEnabled && ageNumber > recMaxAge) showWarning = true;
+        }
+
+        if (warnEl) {
+          if (showWarning) warnEl.classList.add('calc__warning--visible');
+          else warnEl.classList.remove('calc__warning--visible');
+        }
+      }
+
+      monthEl.addEventListener('change', update);
+      yearEl.addEventListener('change', update);
+      update();
+    }
+
+    function loadAndRender() {
+      var orgKey = getOrgKey();
+      if (!orgKey) {
+        showError('No org specified. Add ?org=YOUR_ORG to the URL.');
+        return;
+      }
+
+      fetch('configs.json', { cache: 'no-cache' })
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function(configs) {
+          var config = configs[orgKey];
+          if (!config) {
+            showError('Unknown org "' + orgKey + '". Check configs.json for valid keys.');
+            return;
+          }
+          if (!config.primary || !config.seasonEnd || !config.name) {
+            showError('Config for "' + orgKey + '" is missing required fields (name, primary, seasonEnd).');
+            return;
+          }
+          render(config);
+        })
+        .catch(function(err) {
+          showError('Could not load config: ' + err.message);
+        });
+    }
+
+    loadAndRender();
+  })();
+  </script>
+</body>
+</html>

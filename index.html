@@ -172,7 +172,8 @@
       var minAge = config.minAge != null ? config.minAge : 6;
       var maxAge = config.maxAge != null ? config.maxAge : 19;
       var recMaxAge = config.recMaxAge != null ? config.recMaxAge : null;
-      var club = config.selectClub || null;
+      var selectClub = config.selectClub || null;
+      var recReferrals = config.recReferrals || {};
       var footerNote = config.footerNote || '';
       var brand = config.primary;
 
@@ -180,14 +181,8 @@
       root.style.setProperty('--brand', brand);
       root.style.setProperty('--brand-glow', hexToRgba(brand, 0.15));
 
-      // Build the warning sentence only if both recMaxAge and selectClub are set.
-      var warningEnabled = recMaxAge != null && club;
-      var warningBody = '';
-      if (warningEnabled) {
-        warningBody = config.name + ' recreational soccer runs through U' + recMaxAge +
-          '. Players age U' + (recMaxAge + 1) + ' and older can try out at ' + club +
-          ', which fields competitive teams in the upper age groups.';
-      }
+      // The warning element is always present in the DOM but hidden by default.
+      // Title and body get set dynamically in update() based on which case applies.
 
       var html = '' +
         '<div class="calc__header">' +
@@ -222,12 +217,10 @@
           '<p class="calc__age" id="age">\u2014</p>' +
           '<p class="calc__range" id="range">Select a month and year above.</p>' +
         '</div>' +
-        (warningEnabled
-          ? '<div class="calc__warning" id="warning">' +
-              '<p class="calc__warning-title">Heads up: ' + config.name + ' recreational ends at U' + recMaxAge + '</p>' +
-              '<p class="calc__warning-body">' + warningBody + '</p>' +
-            '</div>'
-          : '') +
+        '<div class="calc__warning" id="warning">' +
+          '<p class="calc__warning-title" id="warning-title"></p>' +
+          '<p class="calc__warning-body" id="warning-body"></p>' +
+        '</div>' +
         (footerNote ? '<p class="calc__footer">' + footerNote + '</p>' : '');
 
       root.innerHTML = html;
@@ -236,7 +229,9 @@
       var yearEl = document.getElementById('year');
       var ageEl = document.getElementById('age');
       var rangeEl = document.getElementById('range');
-      var warnEl = warningEnabled ? document.getElementById('warning') : null;
+      var warnEl = document.getElementById('warning');
+      var warnTitleEl = document.getElementById('warning-title');
+      var warnBodyEl = document.getElementById('warning-body');
 
       // Build year options based on the configured age range
       var yearOptions = [];
@@ -257,7 +252,9 @@
         var ageNumber = seasonStartYear - seasonBirthYear;
         var rangeStart = 'August 1, ' + seasonBirthYear;
         var rangeEnd = 'July 31, ' + (seasonBirthYear + 1);
-        var showWarning = false;
+
+        var warningTitle = '';
+        var warningBody = '';
 
         if (ageNumber < minAge) {
           ageEl.textContent = 'Too young';
@@ -268,12 +265,28 @@
         } else {
           ageEl.textContent = 'U' + ageNumber;
           rangeEl.textContent = 'Born between ' + rangeStart + ' and ' + rangeEnd + '.';
-          if (warningEnabled && ageNumber > recMaxAge) showWarning = true;
+
+          // Decide which warning (if any) to show.
+          // Priority: above-rec wins over gap referral, since a U17 can't be in the rec gap list anyway.
+          if (recMaxAge != null && ageNumber > recMaxAge && selectClub) {
+            warningTitle = 'Recreational soccer ends at U' + recMaxAge;
+            warningBody = 'Recreational soccer at ' + config.name + ' runs through U' + recMaxAge +
+              '. Players age U' + (recMaxAge + 1) + ' and older can try out at ' + selectClub +
+              ', which fields competitive teams in the upper age groups.';
+          } else if (recReferrals[String(ageNumber)]) {
+            var referralOrg = recReferrals[String(ageNumber)];
+            warningTitle = 'U' + ageNumber + ' isn\u2019t offered at ' + config.name;
+            warningBody = config.name + ' doesn\u2019t field a U' + ageNumber +
+              ' team this season. ' + referralOrg + ' offers this age group and welcomes players from neighboring communities.';
+          }
         }
 
-        if (warnEl) {
-          if (showWarning) warnEl.classList.add('calc__warning--visible');
-          else warnEl.classList.remove('calc__warning--visible');
+        if (warningTitle) {
+          warnTitleEl.textContent = warningTitle;
+          warnBodyEl.textContent = warningBody;
+          warnEl.classList.add('calc__warning--visible');
+        } else {
+          warnEl.classList.remove('calc__warning--visible');
         }
       }
 
